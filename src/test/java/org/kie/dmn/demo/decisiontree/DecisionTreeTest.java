@@ -29,9 +29,20 @@ import org.kie.dmn.api.core.ast.DecisionNode;
 import org.kie.dmn.api.core.ast.InputDataNode;
 import org.kie.dmn.core.api.DMNFactory;
 import org.kie.dmn.core.util.KieHelper;
+import org.kie.dmn.feel.runtime.UnaryTest;
+import org.kie.dmn.feel.runtime.decisiontables.DecisionTableImpl;
+import org.kie.dmn.model.v1_1.Decision;
+import org.kie.dmn.model.v1_1.DecisionRule;
+import org.kie.dmn.model.v1_1.DecisionTable;
 import org.kie.dmn.model.v1_1.InformationRequirement;
+import org.kie.dmn.model.v1_1.InputClause;
+import org.kie.dmn.model.v1_1.UnaryTests;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -43,6 +54,8 @@ public class DecisionTreeTest {
     private static DMNModel model;
     private List<InputDataNode> inputNodes = new ArrayList<>();
     private List<DecisionNode> decisionNodes = new ArrayList<>();
+
+    private static Logger logger = LoggerFactory.getLogger(DecisionTreeTest.class);
 
     @BeforeClass
     public static void init() {
@@ -129,6 +142,23 @@ public class DecisionTreeTest {
         }
         assertEquals(decisions.size(), 2);
         assertTrue(inputData.isEmpty());
+    }
+
+    @Test
+    public void testParseTableDmnApi() {
+        DecisionNode decisionNode = model.getDecisionByName("Conclusie Dakkappel");
+        DecisionTable decisionTable = (DecisionTable)decisionNode.getDecision().getExpression();
+        assertEquals("Conclusie Dakkappel", decisionTable.getOutputLabel());
+
+        List<String> inputs = new ArrayList<>();
+        List<InputClause> inputClauses = decisionTable.getInput();
+        for(InputClause inputClause : inputClauses) {
+            inputs.add(inputClause.getInputExpression().getText());
+        }
+        logger.info("INPUTS: " + inputs.toString());
+        assertTrue(Arrays.asList("Plaatsing correct", "Toepassing correct").containsAll(inputs));
+
+
     }
 
     private DMNNode getInfoReq(InformationRequirement infoReq) {
